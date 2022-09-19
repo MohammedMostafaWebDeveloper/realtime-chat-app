@@ -1,0 +1,156 @@
+<script src="/socket.io/socket.io.js"></script>
+<style>
+body{
+	text-align: right;
+	margin: 0;
+}
+#all-con{
+	background: rgb(255, 250, 200);
+	display: inline-block;
+	height: 100vh;
+	width: 80vw;
+}
+#tools{
+	position: absolute;
+	bottom: 0px;
+}
+#msg{
+	width: 75vw;
+	height: 5vh;
+}
+#btn{
+	width: 4.5vw;
+	height: 5vh;
+}
+#con{
+	position: absolute;
+	top: 0px;
+	background: rgb(255, 200, 250);
+	height: 94.5vh;
+	border-radius: 10px;
+	height: 94.5vh;
+	width: 80vw;
+	text-align: center;
+	overflow: scroll;
+}
+#private{
+	background: white;
+	padding: 10px;
+	border-radius: 5px;
+	display: inline-block;
+	width: auto;
+	max-width: 30vw;
+	min-width: 1vw;
+	margin: 5px;
+	text-align: left;
+	
+}
+#sent{
+	background: rgb(100, 255, 100);
+	padding: 10px;
+	border-radius: 5px;
+	display: inline-block;
+	width: auto;
+	max-width: 30vw;
+	min-width: 1vw;
+	margin: 5px;
+	text-align: right;
+}
+#select{
+	position: absolute;
+	width: 19.5vw;
+	height: 7vh;
+	top: 7.1vh;
+	left: 0;
+	text-align: center;
+	font-family: system-ui;
+	font-size: 20px;
+}
+#chat{
+	position: absolute;
+	top: 0;
+	left: 0;
+	text-align: center;
+	width: 20vw;
+}
+</style>
+<p id="chat">Chat with :</p>
+<select id="select">
+<option value="everyone">Everyone</option>
+</select>
+<div id="all-con">
+<div id="con">
+
+</div>
+<div id="tools">
+<input id="msg" type="text" placeholder="Type your message...">
+<button id="btn">send</button>
+</div>
+</div>
+<script>
+	const socket = window.io();
+	var msg = document.getElementById("msg");
+	var btn = document.getElementById("btn");
+	var con = document.getElementById("con");
+	var select = document.getElementById("select");
+	var username = prompt("Enter a username.");
+	var selected = "everyone";
+	
+	socket.emit('username', username)
+	setInterval(function () {
+		socket.emit('user', username)
+	})
+
+	window.onclick = function () {
+	socket.emit('select', select.value);
+	}
+	socket.on('selected', data => {
+	
+		selected = data;
+		
+	})
+	
+	btn.onclick = function () {
+	if (msg.value != "") {
+
+	socket.emit('message', msg.value);
+	msg.value = "";
+	}
+	}
+	
+	socket.on('replay', data => {
+	if (username == selected){
+		con.innerHTML += '<p id="private">' + data + '</p><br>';
+	}
+	if (selected == "everyone"){
+		con.innerHTML += '<p id="private">' + data + '</p><br>';
+	}
+	
+	})
+	
+	
+	
+	socket.on('preplay', data => {
+		con.innerHTML += '<p id="sent">' + data + '</p><br>';
+	})
+	window.onkeyup = function (e) {
+		if (e.keyCode === 13) {
+			if (msg.value != "") {
+			socket.emit('message', msg.value);
+			msg.value = "";
+			}
+		}
+	}
+	socket.on('join', data => {
+		select.innerHTML += '<option id="' + data + '" value="' + data + '">' + data + '</option>';
+		alert(data + " had joined")
+	})
+	socket.on('dis', data => {
+		
+		document.getElementById(data).innerHTML = "deleted acount";
+
+	})
+	socket.on('send', data => {
+		socket.emit('username', username)
+	})
+</script>
